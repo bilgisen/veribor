@@ -11,7 +11,11 @@ _fetcher: Fetcher | None = None
 async def get_cache() -> Cache:
     global _cache
     if _cache is None:
-        _cache = Cache(settings.REDIS_URL)
+        _cache = Cache(
+            settings.REDIS_URL,
+            settings.UPSTASH_REDIS_REST_URL,
+            settings.UPSTASH_REDIS_REST_TOKEN,
+        )
         await _cache.connect()
     return _cache
 
@@ -26,7 +30,11 @@ def get_fetcher() -> Fetcher:
 def get_cache_sync() -> Cache:
     global _cache
     if _cache is None:
-        _cache = Cache(settings.REDIS_URL)
+        _cache = Cache(
+            settings.REDIS_URL,
+            settings.UPSTASH_REDIS_REST_URL,
+            settings.UPSTASH_REDIS_REST_TOKEN,
+        )
     return _cache
 
 

@@ -17,6 +17,9 @@ class Settings:
 
     # Redis (FastAPI Cloud Redis entegrasyonu REDIS_URL'i otomatik enjekte eder)
     REDIS_URL: str = os.getenv("REDIS_URL", "")
+    # Upstash Redis (REST API) — REDIS_URL yoksa kullanılır
+    UPSTASH_REDIS_REST_URL: str = os.getenv("UPSTASH_REDIS_REST_URL", "")
+    UPSTASH_REDIS_REST_TOKEN: str = os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
 
     # Senkronizasyon
     SYNC_INTERVAL_SECONDS: int = int(os.getenv("SYNC_INTERVAL_SECONDS", "60"))

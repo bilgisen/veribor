@@ -46,12 +46,17 @@ POST /admin/refresh         → manuel tazeleme
 
 | Değişken | Varsayılan | Açıklama |
 |---|---|---|
-| `REDIS_URL` | (boş) | FastAPI Cloud Redis entegrasyonu otomatik enjekte eder |
+| `UPSTASH_REDIS_REST_URL` | (boş) | Upstash REST adresi (ör. `https://xxxx.upstash.io`) |
+| `UPSTASH_REDIS_REST_TOKEN` | (boş) | Upstash REST token'ı |
+| `REDIS_URL` | (boş) | Alternatif: `rediss://default:TOKEN@host.upstash.io:6379` (FastAPI Cloud Redis entegrasyonu bunu enjekte eder) |
 | `SYNC_INTERVAL_SECONDS` | 60 | Arka plan tazeleme aralığı |
 | `STALE_AFTER_SECONDS` | 120 | Cache bu süre sonra bayatsa istek anında refresh |
 | `ENABLE_ISY_ENRICHMENT` | true | AA hisselerini İşY batch ile zenginleştir (bid/ask + periyodik kapanışlar) |
-| `ISY_CHUNK_SIZE` | 100 | İşY batch parça boyutu |
+| `ENRICH_INTERVAL_SECONDS` | 300 | Zenginleştirme aralığı (İşY istek hacmini düşürür) |
+| `ISY_CHUNK_SIZE` | 20 | İşY batch parça boyutu (İşY limiti ~20 sembol/istek) |
 | `CORS_ORIGINS` | jetborsa.com + localhost:3000 | Virgüllü liste |
+
+Cache önceliği: **Upstash REST → REDIS_URL (redis-py) → in-memory**.
 
 ## Yerel Çalıştırma
 
