@@ -1,0 +1,11 @@
+# FastAPI Cloud Deployment Configuration
+ignore:
+  - ".git"
+  - ".venv"
+  - "__pycache__"
+  - "*.pyc"
+  - "*.log"
+  - ".env"
+  - ".env.example"
+  - "tests/"
+  - "*.db"
