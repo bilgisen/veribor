@@ -61,6 +61,9 @@ class Settings:
     # Zenginleştirme baz senkronizasyondan daha seyrek çalışır (istek hacmini düşürür)
     ENRICH_INTERVAL_SECONDS: int = int(os.getenv("ENRICH_INTERVAL_SECONDS", "300"))
 
+    # TA motoru fiyat geçmişi — tapi2 (D1 finveri-db) üzerinden
+    TAPI2_HISTORY_URL: str = os.getenv("TAPI2_HISTORY_URL", "https://tapi2.jetborsa.workers.dev")
+
     # Navbar/endeks listesi (AA SektorEndeksleriniGetir ile uyumlu)
     INDEX_CODES: list[tuple[str, str]] = field(
         default_factory=lambda: [

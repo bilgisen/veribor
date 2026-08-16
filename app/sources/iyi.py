@@ -126,6 +126,7 @@ async def fetch_indices(client: httpx.AsyncClient) -> SourceResult:
                     "record_date": item.get("updateDate"),
                     "display_order": order + 1,
                     "source": "iyi",
+                    **_periodic_changes(item, last),
                 }
             )
         if not data:

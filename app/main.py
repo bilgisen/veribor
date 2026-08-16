@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.core import get_cache, get_fetcher, shutdown
-from app.routers import health, instruments, quote, stocks, summary
+from app.routers import health, instruments, quote, stocks, summary, ta
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(summary.router)
     app.include_router(instruments.router)
     app.include_router(quote.router)
+    app.include_router(ta.router)
 
     return app
 
