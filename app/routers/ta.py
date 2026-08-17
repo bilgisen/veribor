@@ -81,19 +81,19 @@ async def _cached_or_compute(key: str, ticker: str, kind: str, query_type: str =
 
 @router.get("/member/{code}/summary")
 async def member_summary(code: str):
-    ticker = code.upper()
+    ticker = code.split(":")[0].upper() if ":" in code else code.upper()
     return await _cached_or_compute(f"ta:member:{ticker}", ticker, "member")
 
 
 @router.get("/public/{code}/summary")
 async def public_summary(code: str):
-    ticker = code.upper()
+    ticker = code.split(":")[0].upper() if ":" in code else code.upper()
     return await _cached_or_compute(f"ta:public:{ticker}", ticker, "public")
 
 
 @router.get("/full/{code}")
 async def full_analysis(code: str):
-    ticker = code.upper()
+    ticker = code.split(":")[0].upper() if ":" in code else code.upper()
     return await _cached_or_compute(f"ta:full:{ticker}", ticker, "full")
 
 
@@ -102,7 +102,7 @@ async def context_analysis(
     code: str,
     query_type: str = Query("general", description="general|entry|risk|comparison"),
 ):
-    ticker = code.upper()
+    ticker = code.split(":")[0].upper() if ":" in code else code.upper()
     if query_type not in ("general", "entry", "risk", "comparison"):
         query_type = "general"
     return await _cached_or_compute(
@@ -112,7 +112,7 @@ async def context_analysis(
 
 @router.get("/ceo-report/{ticker}")
 async def ceo_report(ticker: str):
-    code = ticker.upper()
+    code = ticker.split(":")[0].upper() if ":" in ticker else ticker.upper()
     cache = await get_cache()
     cached = await cache.get_json(f"ta:ceo:v3:{code}")
     if cached is not None:
@@ -127,7 +127,7 @@ async def ceo_report(ticker: str):
 @router.get("/summary/{code}")
 async def legacy_summary(code: str):
     """Legacy — member summary."""
-    ticker = code.upper()
+    ticker = code.split(":")[0].upper() if ":" in code else code.upper()
     return await _cached_or_compute(f"ta:member:{ticker}", ticker, "member")
 
 

@@ -1,6 +1,6 @@
-﻿"""
+"""
 CEO / Yonetim Kurulu Seviyesi Teknik Analiz Raporu
-Pure Python (no pandas/numpy) â€” Works in Workers.
+Pure Python (no pandas/numpy) — Works in Workers.
 """
 from __future__ import annotations
 import logging
@@ -46,42 +46,42 @@ def _normalize_component(raw: Any, lo: float, hi: float) -> int:
 
 def _trend_interpretation(score: float, close: float, sma_20: float, sma_50: float, sma_200: float) -> Dict[str, str]:
     interp = {}
-    interp["short"] = "KÄ±sa vadeli yapÄ± pozitif" if close > sma_20 else "KÄ±sa vadeli yapÄ±da zayÄ±flama"
-    interp["medium"] = "Orta vadeli trend yapÄ±sÄ± korunuyor" if sma_20 > sma_50 else "Orta vadeli yapÄ±da bozulma"
-    interp["long"] = "Uzun vadeli ana trend korunuyor" if close > sma_200 else "Uzun vadeli ana trend zayÄ±flÄ±yor"
+    interp["short"] = "Kısa vadeli yapı pozitif" if close > sma_20 else "Kısa vadeli yapıda zayıflama"
+    interp["medium"] = "Orta vadeli trend yapısı korunuyor" if sma_20 > sma_50 else "Orta vadeli yapıda bozulma"
+    interp["long"] = "Uzun vadeli ana trend korunuyor" if close > sma_200 else "Uzun vadeli ana trend zayıflıyor"
     if score > 65:
-        interp["character"] = "YÃ¼kseliÅŸ"
+        interp["character"] = "Yükseliş"
     elif score > 45:
         interp["character"] = "Yatay konsolidasyon"
     elif score > 30:
-        interp["character"] = "DÃ¼zeltme"
+        interp["character"] = "Düzeltme"
     else:
-        interp["character"] = "Trend dÃ¶nÃ¼ÅŸÃ¼mÃ¼ riski"
+        interp["character"] = "Trend dönüşümü riski"
     return interp
 
 
 def _rsi_interpretation(rsi_val: float, prev_rsi: float = None) -> str:
     if rsi_val > 70:
-        return "AÅŸÄ±rÄ± alÄ±m bÃ¶lgesinde, kar satÄ±ÅŸÄ± riski bulunuyor."
+        return "Aşırı alım bölgesinde, kar satışı riski bulunuyor."
     elif rsi_val > 60:
-        return "Momentum pozitif ancak aÅŸÄ±rÄ± alÄ±ma yaklaÅŸÄ±lÄ±yor."
+        return "Momentum pozitif ancak aşırı alıma yaklaşılıyor."
     elif rsi_val > 45:
-        return "NÃ¶tr bÃ¶lge, belirgin bir momentum yÃ¶nÃ¼ yok."
+        return "Nötr bölge, belirgin bir momentum yönü yok."
     elif rsi_val > 30:
-        return "Momentum zayÄ±flÄ±yor, ancak aÅŸÄ±rÄ± satÄ±ma yaklaÅŸÄ±m tepki potansiyeli oluÅŸturuyor."
+        return "Momentum zayıflıyor, ancak aşırı satıma yaklaşım tepki potansiyeli oluşturuyor."
     else:
-        return "AÅŸÄ±rÄ± satÄ±m bÃ¶lgesinde, kÄ±sa vadeli tepki potansiyeli yÃ¼ksek."
+        return "Aşırı satım bölgesinde, kısa vadeli tepki potansiyeli yüksek."
 
 
 def _macd_interpretation(macd_val: float, signal_val: float, hist_val: float) -> str:
     if hist_val > 0 and macd_val > signal_val:
-        return "Pozitif momentum devam ediyor, trend gÃ¼Ã§lÃ¼."
+        return "Pozitif momentum devam ediyor, trend güçlü."
     elif hist_val > 0:
-        return "Histogram pozitife dÃ¶ndÃ¼, ancak kesiÅŸim henÃ¼z kesinleÅŸmedi."
+        return "Histogram pozitife döndü, ancak kesişim henüz kesinleşmedi."
     elif hist_val < 0 and macd_val < signal_val:
-        return "Negatif momentum devam ediyor, satÄ±ÅŸ baskÄ±sÄ± hakim."
+        return "Negatif momentum devam ediyor, satış baskısı hakim."
     else:
-        return "Histogram negatif bÃ¶lgede, ancak zayÄ±flama sinyalleri var."
+        return "Histogram negatif bölgede, ancak zayıflama sinyalleri var."
 
 
 def _calculate_confluence_score(close: float, sma_20: float, sma_50: float, sma_200: float,
@@ -97,47 +97,47 @@ def _calculate_confluence_score(close: float, sma_20: float, sma_50: float, sma_
     # 0-100 scale keeps display consistent with technical_score (frontend shows "X/100")
     scaled = int((confluenced_score + 3) / 6 * 100)
     if confluenced_score >= 2:
-        label = "GÃ¼Ã§lÃ¼ pozitif uyum"
-        direction = "YÃ¼kseliÅŸ (Bullish)"
+        label = "Güçlü pozitif uyum"
+        direction = "Yükseliş (Bullish)"
     elif confluenced_score >= 1:
         label = "Pozitif uyum"
-        direction = "YÃ¼kseliÅŸ (Bullish)"
+        direction = "Yükseliş (Bullish)"
     elif confluenced_score >= -1:
-        label = "Uyumsuz / NÃ¶tr"
-        direction = "NÃ¶tr (Neutral)"
+        label = "Uyumsuz / Nötr"
+        direction = "Nötr (Neutral)"
     elif confluenced_score >= -2:
         label = "Negatif uyum"
-        direction = "DÃ¼ÅŸÃ¼ÅŸ (Bearish)"
+        direction = "Düşüş (Bearish)"
     else:
-        label = "GÃ¼Ã§lÃ¼ negatif uyum"
-        direction = "DÃ¼ÅŸÃ¼ÅŸ (Bearish)"
+        label = "Güçlü negatif uyum"
+        direction = "Düşüş (Bearish)"
     return {"confluence_score": scaled, "confluence_direction": direction, "confluence_label": label, "components": {"sma_alignment": sma_bullish, "price_vs_sma": price_bullish, "rsi": rsi_bullish, "macd": macd_bullish, "regime": regime_bullish}}
 
 
 def _regime_tr(regime: str) -> str:
     t = {
-        "Strong Trend": "GÃ¼Ã§lÃ¼ Trend (Strong Trend)",
-        "Weak Trend": "ZayÄ±f Trend (Weak Trend)",
+        "Strong Trend": "Güçlü Trend (Strong Trend)",
+        "Weak Trend": "Zayıf Trend (Weak Trend)",
         "Range Bound": "Bant (Range Bound)",
-        "Choppy / Uncertain": "DalgalÄ± / Belirsiz (Choppy / Uncertain)",
+        "Choppy / Uncertain": "Dalgalı / Belirsiz (Choppy / Uncertain)",
     }
     return t.get(regime, regime)
 
 def _trend_dir_tr(direction: str) -> str:
     t = {
-        "Bullish": "YÃ¼kseliÅŸ (Bullish)",
-        "Bearish": "DÃ¼ÅŸÃ¼ÅŸ (Bearish)",
-        "Neutral": "NÃ¶tr (Neutral)",
-        "Uptrend": "YÃ¼kseliÅŸ (Uptrend)",
-        "Downtrend": "DÃ¼ÅŸÃ¼ÅŸ (Downtrend)",
+        "Bullish": "Yükseliş (Bullish)",
+        "Bearish": "Düşüş (Bearish)",
+        "Neutral": "Nötr (Neutral)",
+        "Uptrend": "Yükseliş (Uptrend)",
+        "Downtrend": "Düşüş (Downtrend)",
     }
     return t.get(direction, direction)
 
 def _volatility_tr(vol: str) -> str:
     t = {
         "Normal": "Normal",
-        "High Volatility": "YÃ¼ksek Volatilite",
-        "Low Volatility": "DÃ¼ÅŸÃ¼k Volatilite",
+        "High Volatility": "Yüksek Volatilite",
+        "Low Volatility": "Düşük Volatilite",
     }
     return t.get(vol, vol)
 
@@ -145,7 +145,7 @@ def _volatility_tr(vol: str) -> str:
 def _check_consistency(st_dir: int, regime: Dict, confluence: Dict,
                        divergences: Dict, nearest_support: float, stop_loss: float,
                        close: float, mfi_val: float) -> List[Dict[str, Any]]:
-    """Central consistency-validation layer â€” auto-detect contradictions between
+    """Central consistency-validation layer — auto-detect contradictions between
     signals so downstream (LLM narrative, UI) can explain rather than contradict.
 
     Each flag: {check, status: 'ok'|'conflict', message}. Conflicts are also
@@ -162,19 +162,19 @@ def _check_consistency(st_dir: int, regime: Dict, confluence: Dict,
         flags.append({
             "check": "supertrend_vs_trend",
             "status": "conflict",
-            "message": f"Ana trend {reg_dir} yÃ¶nlÃ¼ ancak kÄ±sa vadeli Supertrend DÃ¼ÅŸÃ¼ÅŸ sinyali veriyor â€” kÄ±sa vadeli zayÄ±flÄ±k ana trendin Ã¶nÃ¼ne geÃ§memeli.",
+            "message": f"Ana trend {reg_dir} yönlü ancak kısa vadeli Supertrend Düşüş sinyali veriyor — kısa vadeli zayıflık ana trendin önüne geçmemeli.",
         })
     elif reg_bearish and st_bullish:
         flags.append({
             "check": "supertrend_vs_trend",
             "status": "conflict",
-            "message": f"Ana trend {reg_dir} yÃ¶nlÃ¼ ancak kÄ±sa vadeli Supertrend YÃ¼kseliÅŸ sinyali veriyor â€” bu tepki alÄ±mÄ± olarak yorumlanmalÄ±, ana trend dÃ¶nÃ¼ÅŸÃ¼ deÄŸil.",
+            "message": f"Ana trend {reg_dir} yönlü ancak kısa vadeli Supertrend Yükseliş sinyali veriyor — bu tepki alımı olarak yorumlanmalı, ana trend dönüşü değil.",
         })
     else:
         flags.append({
             "check": "supertrend_vs_trend",
             "status": "ok",
-            "message": f"Supertrend ({'YÃ¼kseliÅŸ' if st_bullish else 'DÃ¼ÅŸÃ¼ÅŸ'}) ile ana trend ({reg_dir}) yÃ¶n olarak uyumlu.",
+            "message": f"Supertrend ({'Yükseliş' if st_bullish else 'Düşüş'}) ile ana trend ({reg_dir}) yön olarak uyumlu.",
         })
 
     # 2. Stop-loss must sit below the nearest support (invalidation semantics)
@@ -182,13 +182,13 @@ def _check_consistency(st_dir: int, regime: Dict, confluence: Dict,
         flags.append({
             "check": "stop_vs_support",
             "status": "conflict",
-            "message": f"Stop-loss ({stop_loss:,.2f}) destek-1 seviyesinin ({nearest_support:,.2f}) Ã¼zerinde; stop bir geÃ§ersizlik seviyesi olarak desteÄŸin altÄ±nda konumlanmalÄ±.",
+            "message": f"Stop-loss ({stop_loss:,.2f}) destek-1 seviyesinin ({nearest_support:,.2f}) üzerinde; stop bir geçersizlik seviyesi olarak desteğin altında konumlanmalı.",
         })
     else:
         flags.append({
             "check": "stop_vs_support",
             "status": "ok",
-            "message": f"Stop-loss ({stop_loss:,.2f}) destek-1 ({nearest_support:,.2f}) altÄ±nda â€” destek kÄ±rÄ±lÄ±mÄ± geÃ§ersizlik sayÄ±lÄ±r.",
+            "message": f"Stop-loss ({stop_loss:,.2f}) destek-1 ({nearest_support:,.2f}) altında — destek kırılımı geçersizlik sayılır.",
         })
 
     # 3. Narrative vs data: negative confluence but zero divergence is not a contradiction
@@ -199,19 +199,19 @@ def _check_consistency(st_dir: int, regime: Dict, confluence: Dict,
         flags.append({
             "check": "confluence_vs_divergence",
             "status": "ok",
-            "message": "Konfluans negatif ancak belirgin momentum uyumsuzluÄŸu (divergence) yok â€” gÃ¶stergeler aynÄ± yÃ¶nde (satÄ±ÅŸ) iÅŸaret ettiÄŸinden tutarlÄ±dÄ±r.",
+            "message": "Konfluans negatif ancak belirgin momentum uyumsuzluğu (divergence) yok — göstergeler aynı yönde (satış) işaret ettiğinden tutarlıdır.",
         })
     elif conf_score >= 66 and div_count >= 2:
         flags.append({
             "check": "confluence_vs_divergence",
             "status": "conflict",
-            "message": f"Konfluans gÃ¼Ã§lÃ¼ pozitif ({conf_score}/100) ancak {div_count} gÃ¶stergede divergence tespit edildi â€” momentum zayÄ±flamasÄ± ile uyum Ã§eliÅŸiyor, dikkat.",
+            "message": f"Konfluans güçlü pozitif ({conf_score}/100) ancak {div_count} göstergede divergence tespit edildi — momentum zayıflaması ile uyum çelişiyor, dikkat.",
         })
     else:
         flags.append({
             "check": "confluence_vs_divergence",
             "status": "ok",
-            "message": "Konfluans ile divergence sinyalleri birbiriyle Ã§eliÅŸmiyor.",
+            "message": "Konfluans ile divergence sinyalleri birbiriyle çelişmiyor.",
         })
 
     # 4. MFI extreme clamp guard (100 is data-artifact, not a real reading)
@@ -219,10 +219,10 @@ def _check_consistency(st_dir: int, regime: Dict, confluence: Dict,
         flags.append({
             "check": "mfi_sanity",
             "status": "conflict",
-            "message": "MFI 100'e yakÄ±n; bu deÄŸer gerÃ§ek aÅŸÄ±rÄ± alÄ±m deÄŸil, hacim/cam toplama artefaktÄ± olabilir. MFI sinyali gÃ¶z ardÄ± edilmelidir.",
+            "message": "MFI 100'e yakın; bu değer gerçek aşırı alım değil, hacim/cam toplama artefaktı olabilir. MFI sinyali göz ardı edilmelidir.",
         })
 
-    # 5. Price far below value area low â€” weakness interpretation
+    # 5. Price far below value area low — weakness interpretation
     return flags
 
 def _generate_executive_summary(ticker: str, close: float, score: float, trend_data: Dict,
@@ -232,53 +232,53 @@ def _generate_executive_summary(ticker: str, close: float, score: float, trend_d
                                  chart_patterns: list = None, unit: str = "TL") -> str:
     trend_word = trend_data.get("character", "yatay")
     regime_word = _regime_tr(regime.get("regime", "belirsiz"))
-    trend_dir = _trend_dir_tr(regime.get("trend_direction", "NÃ¶tr"))
+    trend_dir = _trend_dir_tr(regime.get("trend_direction", "Nötr"))
     nearest_sup = sr_zones.get("nearest_support", {}).get("price", 0)
     nearest_res = sr_zones.get("nearest_resistance", {}).get("price", 0)
 
-    rsi_status = "nÃ¶tr"
+    rsi_status = "nötr"
     if rsi_val > 70:
-        rsi_status = "aÅŸÄ±rÄ± alÄ±m"
+        rsi_status = "aşırı alım"
     elif rsi_val > 55:
         rsi_status = "pozitif momentum"
     elif rsi_val < 30:
-        rsi_status = "aÅŸÄ±rÄ± satÄ±m"
+        rsi_status = "aşırı satım"
     elif rsi_val < 45:
-        rsi_status = "zayÄ±f momentum"
+        rsi_status = "zayıf momentum"
 
     entity_type = "endeks" if ticker.startswith('X') else "hisse"
     summary = (
-        f"{ticker} {entity_type}i mevcut gÃ¶rÃ¼nÃ¼m itibarÄ±yla {trend_word} safhasÄ±ndadÄ±r. "
-        f"Teknik skor {score:.0f}/100 seviyesinde olup {regime_word} rejimi ({trend_dir}) gÃ¶zlemlenmektedir. "
-        f"Momentum gÃ¶stergeleri {rsi_status} bÃ¶lgesindedir. "
+        f"{ticker} {entity_type}i mevcut görünüm itibarıyla {trend_word} safhasındadır. "
+        f"Teknik skor {score:.0f}/100 seviyesinde olup {regime_word} rejimi ({trend_dir}) gözlemlenmektedir. "
+        f"Momentum göstergeleri {rsi_status} bölgesindedir. "
     )
     if confluence:
         conf = confluence.get("confluence_score", 0)
         if conf >= 66:
-            summary += "GÃ¶stergeler arasÄ±nda gÃ¼Ã§lÃ¼ pozitif uyum bulunmaktadÄ±r. "
+            summary += "Göstergeler arasında güçlü pozitif uyum bulunmaktadır. "
         elif conf <= 34:
-            summary += "GÃ¶stergeler arasÄ±nda gÃ¼Ã§lÃ¼ negatif uyumsuzluk bulunmaktadÄ±r. "
+            summary += "Göstergeler arasında güçlü negatif uyumsuzluk bulunmaktadır. "
         elif conf != 50:
-            summary += "GÃ¶stergeler arasÄ±nda kÄ±smi uyum mevcuttur. "
+            summary += "Göstergeler arasında kısmi uyum mevcuttur. "
     if divergences:
         dc = divergences.get("divergence_count", 0)
         if dc >= 2:
-            summary += f"{dc} gÃ¶stergede uyumsuzluk (divergence) tespit edilmiÅŸtir. "
+            summary += f"{dc} göstergede uyumsuzluk (divergence) tespit edilmiştir. "
         elif dc == 1:
-            summary += "Bir gÃ¶stergede uyumsuzluk (divergence) tespit edilmiÅŸtir. "
+            summary += "Bir göstergede uyumsuzluk (divergence) tespit edilmiştir. "
     if candle_patterns:
         bullish = [p for p in candle_patterns if p.get("direction") == "Bullish"]
         bearish = [p for p in candle_patterns if p.get("direction") == "Bearish"]
         if bullish:
-            summary += f"Mum formasyonlarÄ±nda {bullish[0]['name']} gibi pozitif sinyaller bulunmaktadÄ±r. "
+            summary += f"Mum formasyonlarında {bullish[0]['name']} gibi pozitif sinyaller bulunmaktadır. "
         if bearish:
-            summary += f"Mum formasyonlarÄ±nda {bearish[0]['name']} gibi negatif sinyaller bulunmaktadÄ±r. "
+            summary += f"Mum formasyonlarında {bearish[0]['name']} gibi negatif sinyaller bulunmaktadır. "
     if chart_patterns:
-        summary += f"Teknik formasyon olarak {chart_patterns[0]['name']} tespit edilmiÅŸtir. "
+        summary += f"Teknik formasyon olarak {chart_patterns[0]['name']} tespit edilmiştir. "
     if nearest_sup > 0:
         summary += f"Kritik destek {_fmt_price(nearest_sup, unit)} seviyesindedir. "
     if nearest_res > 0:
-        summary += f"YukarÄ± yÃ¶nlÃ¼ hareket iÃ§in Ã¶ncelikli teyit noktasÄ± {_fmt_price(nearest_res, unit)} seviyesidir. "
+        summary += f"Yukarı yönlü hareket için öncelikli teyit noktası {_fmt_price(nearest_res, unit)} seviyesidir. "
     return summary
 
 
@@ -288,7 +288,7 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
         data = await get_historical_prices(ticker_upper, limit=500)
         if not data:
             return {"error": f"No historical data found for {ticker_upper}"}
-        data = await _overlay_live_data(ticker_upper, data)
+        data = _overlay_live_data(ticker_upper, data)
 
         cols = {
             "open": [float(r.get("open", 0) or 0) for r in data],
@@ -382,7 +382,7 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
         risk = abs(close - stop_loss)
         reward = abs(take_profit - close)
         rr_ratio = (reward / risk) if risk > 0 else 0
-        # Sanity cap â€” extreme multiples usually indicate a bad level, not a good trade.
+        # Sanity cap — extreme multiples usually indicate a bad level, not a good trade.
         rr_ratio = min(rr_ratio, 10.0)
 
         unit = "puan" if ticker_upper.startswith('X') else "TL"
@@ -421,10 +421,10 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "trend_direction": _trend_dir_tr(regime.get('trend_direction', 'Neutral')),
                 "volatility_regime": _volatility_tr(regime.get('volatility_regime', 'Normal')),
                 "recommended_strategy": regime.get('recommended_strategy', ''),
-                "timeframe": "4S + GÃ¼nlÃ¼k",
+                "timeframe": "4S + Günlük",
                 "confidence_reason": confluence.get("confluence_label", ""),
                 "confluence_score": confluence.get("confluence_score", 50),
-                "confluence_direction": confluence.get("confluence_direction", "NÃ¶tr (Neutral)"),
+                "confluence_direction": confluence.get("confluence_direction", "Nötr (Neutral)"),
                 "confluence_label": confluence.get("confluence_label", ""),
                 "score_components": {
                     "trend": _normalize_component(score_data.get("trend_component", 0), -45, 45),
@@ -434,10 +434,10 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 },
             },
             "key_levels": {
-                "support_1": {"price": round(nearest_support, 2), "importance": "KÄ±sa vadeli savunma alanÄ±", "scenario": "Tutunma halinde tepki potansiyeli"},
-                "support_2": {"price": round(close * 0.93, 2), "importance": "Ana destek", "scenario": "KÄ±rÄ±lÄ±m halinde risk artÄ±ÅŸÄ±"},
-                "resistance_1": {"price": round(nearest_resistance, 2), "importance": "Ä°lk engel", "scenario": "Momentum teyidi gerekli"},
-                "resistance_2": {"price": round(nearest_resistance * 1.05, 2), "importance": "Trend deÄŸiÅŸim seviyesi", "scenario": "Yeni fiyat keÅŸfi potansiyeli"},
+                "support_1": {"price": round(nearest_support, 2), "importance": "Kısa vadeli savunma alanı", "scenario": "Tutunma halinde tepki potansiyeli"},
+                "support_2": {"price": round(close * 0.93, 2), "importance": "Ana destek", "scenario": "Kırılım halinde risk artışı"},
+                "resistance_1": {"price": round(nearest_resistance, 2), "importance": "İlk engel", "scenario": "Momentum teyidi gerekli"},
+                "resistance_2": {"price": round(nearest_resistance * 1.05, 2), "importance": "Trend değişim seviyesi", "scenario": "Yeni fiyat keşfi potansiyeli"},
                 "stop_loss": round(stop_loss, 2),
                 "take_profit": round(take_profit, 2),
                 "risk_reward_ratio": round(rr_ratio, 2),
@@ -446,7 +446,7 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "rsi": {
                     "value": round(rsi_val, 1),
                     "interpretation": _rsi_interpretation(rsi_val),
-                    "status": "AÅŸÄ±rÄ± AlÄ±m" if rsi_val > 70 else "AÅŸÄ±rÄ± SatÄ±m" if rsi_val < 30 else "NÃ¶tr",
+                    "status": "Aşırı Alım" if rsi_val > 70 else "Aşırı Satım" if rsi_val < 30 else "Nötr",
                 },
                 "macd": {
                     "macd_line": round(macd_val, 2),
@@ -460,11 +460,11 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                     "sma_200": round(sma_200_val, 2),
                     "ema_9": round(ema_9_val, 2),
                     "ema_21": round(ema_21_val, 2),
-                    "price_vs_sma20": "ÃœstÃ¼nde" if close > sma_20_val else "AltÄ±nda",
-                    "price_vs_sma50": "ÃœstÃ¼nde" if close > sma_50_val else "AltÄ±nda",
-                    "price_vs_sma200": "ÃœstÃ¼nde" if close > sma_200_val else "AltÄ±nda",
-                    "price_vs_ema9": "ÃœstÃ¼nde" if close > ema_9_val else "AltÄ±nda",
-                    "price_vs_ema21": "ÃœstÃ¼nde" if close > ema_21_val else "AltÄ±nda",
+                    "price_vs_sma20": "Üstünde" if close > sma_20_val else "Altında",
+                    "price_vs_sma50": "Üstünde" if close > sma_50_val else "Altında",
+                    "price_vs_sma200": "Üstünde" if close > sma_200_val else "Altında",
+                    "price_vs_ema9": "Üstünde" if close > ema_9_val else "Altında",
+                    "price_vs_ema21": "Üstünde" if close > ema_21_val else "Altında",
                     "golden_cross": sma_50_val > sma_200_val,
                 },
                 "volatility": {
@@ -480,11 +480,11 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "stochastic": {
                     "k": round(stoch_k, 1),
                     "d": round(stoch_d, 1),
-                    "status": "AÅŸÄ±rÄ± AlÄ±m" if stoch_k > 80 else "AÅŸÄ±rÄ± SatÄ±m" if stoch_k < 20 else "NÃ¶tr",
+                    "status": "Aşırı Alım" if stoch_k > 80 else "Aşırı Satım" if stoch_k < 20 else "Nötr",
                 },
                 "supertrend": {
                     "value": round(st_val, 2),
-                    "direction": "YÃ¼kseliÅŸ" if st_dir == 1 else "DÃ¼ÅŸÃ¼ÅŸ",
+                    "direction": "Yükseliş" if st_dir == 1 else "Düşüş",
                 },
                 "vwap": round(vwap_val, 2),
                 "adx_details": {
@@ -495,23 +495,23 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
 "scenarios": {
                 "positive": {
                     "name": "Pozitif Senaryo",
-                    "conditions": [f"DirenÃ§ {_fmt_price(nearest_resistance, unit)} seviyesinin hacim eÅŸliÄŸinde kÄ±rÄ±lmasÄ±", "RSI'nin 50 Ã¼stÃ¼nde kalÄ±cÄ± olmasÄ±"],
+                    "conditions": [f"Direnç {_fmt_price(nearest_resistance, unit)} seviyesinin hacim eşliğinde kırılması", "RSI'nin 50 üstünde kalıcı olması"],
                     "target": f"Hedef: {_fmt_price(nearest_resistance * 1.05, unit)} - {_fmt_price(nearest_resistance * 1.10, unit)}",
-                    "invalidation": f"GeÃ§ersizlik: {_fmt_price(stop_loss, unit)} (destek kÄ±rÄ±lÄ±m seviyesinin altÄ±)",
-                    "probability": "YÃ¼ksek" if (score_data['score'] > 60 and confluence.get("confluence_score", 50) >= 50) else ("DÃ¼ÅŸÃ¼k" if confluence.get("confluence_score", 50) <= 40 else "Orta"),
+                    "invalidation": f"Geçersizlik: {_fmt_price(stop_loss, unit)} (destek kırılım seviyesinin altı)",
+                    "probability": "Yüksek" if (score_data['score'] > 60 and confluence.get("confluence_score", 50) >= 50) else ("Düşük" if confluence.get("confluence_score", 50) <= 40 else "Orta"),
                 },
                 "neutral": {
-                    "name": "NÃ¶tr / Konsolidasyon Senaryosu",
-                    "conditions": [f"FiyatÄ±n {_fmt_price(nearest_support, unit)} - {_fmt_price(nearest_resistance, unit)} aralÄ±ÄŸÄ±nda hareketi"],
-                    "strategy": "Teyit beklenmeli, ani pozisyon deÄŸiÅŸikliÄŸinden kaÃ§Ä±nÄ±lmalÄ±",
+                    "name": "Nötr / Konsolidasyon Senaryosu",
+                    "conditions": [f"Fiyatın {_fmt_price(nearest_support, unit)} - {_fmt_price(nearest_resistance, unit)} aralığında hareketi"],
+                    "strategy": "Teyit beklenmeli, ani pozisyon değişikliğinden kaçınılmalı",
                     "probability": "Orta",
                 },
                 "negative": {
                     "name": "Negatif Senaryo",
-                    "conditions": [f"Destek {_fmt_price(nearest_support, unit)} seviyesinin kÄ±rÄ±lmasÄ±", "RSI'nin 40 altÄ±na gerilemesi"],
+                    "conditions": [f"Destek {_fmt_price(nearest_support, unit)} seviyesinin kırılması", "RSI'nin 40 altına gerilemesi"],
                     "risk": f"Risk: {_fmt_price(close * 0.90, unit)} - {_fmt_price(close * 0.85, unit)}",
-                    "invalidation": f"GeÃ§ersizlik: {_fmt_price(nearest_resistance, unit)} Ã¼zerinde kapanÄ±ÅŸ",
-                    "probability": "YÃ¼ksek" if (score_data['score'] <= 40 and confluence.get("confluence_score", 50) <= 45) else ("DÃ¼ÅŸÃ¼k" if (score_data['score'] > 55 and confluence.get("confluence_score", 50) >= 55) else "Orta"),
+                    "invalidation": f"Geçersizlik: {_fmt_price(nearest_resistance, unit)} üzerinde kapanış",
+                    "probability": "Yüksek" if (score_data['score'] <= 40 and confluence.get("confluence_score", 50) <= 45) else ("Düşük" if (score_data['score'] > 55 and confluence.get("confluence_score", 50) >= 55) else "Orta"),
                 },
             },
             "volume_profile": {
@@ -521,19 +521,19 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "poc_volume": volume_profile.get('poc_volume', 0),
                 "total_volume": volume_profile.get('total_volume', 0),
                 "price_vs_value_area": (
-                    "Ä°Ã§inde"
+                    "İçinde"
                     if volume_profile.get('value_area_low', close) <= close <= volume_profile.get('value_area_high', close)
-                    else ("ÃœstÃ¼nde (gÃ¼Ã§lÃ¼)" if close > volume_profile.get('value_area_high', close) else "AltÄ±nda (zayÄ±f)")
+                    else ("Üstünde (güçlü)" if close > volume_profile.get('value_area_high', close) else "Altında (zayıf)")
                 ) if "error" not in volume_profile else "Veri yetersiz",
                 "interpretation": (
                     f"Hacim profili analizi {_fmt_price(volume_profile.get('poc', close), unit)} seviyesinde "
-                    f"en yÃ¼ksek yoÄŸunluÄŸu gÃ¶stermektedir."
-                    + (f" Fiyat, deÄŸer bÃ¶lgesinin ({_fmt_price(volume_profile.get('value_area_low', close), unit)}-{_fmt_price(volume_profile.get('value_area_high', close), unit)}) "
-                       + ("altÄ±nda iÅŸlem gÃ¶rÃ¼yor; bu zayÄ±flÄ±k iÅŸareti olarak izlenmeli."
+                    f"en yüksek yoğunluğu göstermektedir."
+                    + (f" Fiyat, değer bölgesinin ({_fmt_price(volume_profile.get('value_area_low', close), unit)}-{_fmt_price(volume_profile.get('value_area_high', close), unit)}) "
+                       + ("altında işlem görüyor; bu zayıflık işareti olarak izlenmeli."
                           if close < volume_profile.get('value_area_low', close)
-                          else "Ã¼zerinde iÅŸlem gÃ¶rÃ¼yor; gÃ¼Ã§lÃ¼ konum olarak yorumlanabilir.")
+                          else "üzerinde işlem görüyor; güçlü konum olarak yorumlanabilir.")
                        if "error" not in volume_profile else "")
-                ) if "error" not in volume_profile else "Hacim profili verisi yeterli deÄŸil",
+                ) if "error" not in volume_profile else "Hacim profili verisi yeterli değil",
             },
             "liquidity_voids": [
                 {"price": round(v.get("price", 0), 2), "gap_percent": round(v.get("gap_percent", 0), 2), "severity": v.get("severity", "Unknown"), "direction": v.get("direction", "up"), "bars_ago": v.get("bars_ago", 0)}
@@ -546,7 +546,7 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "divergence_count": divergences.get("divergence_count", 0),
                 "overall_confidence": divergences.get("overall_confidence", "Low"),
                 "summary": (
-                    f"{divergences.get('divergence_count', 0)} gÃ¶stergede uyumsuzluk."
+                    f"{divergences.get('divergence_count', 0)} göstergede uyumsuzluk."
                 ) if divergences.get("divergence_count", 0) > 0 else "Belirgin uyumsuzluk tespit edilmedi.",
             },
             "patterns": {
@@ -557,8 +557,8 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "active_count": pattern_score.get("active_count", 0),
             },
             "risk_assessment": {
-                "technical_risks": ["Destek seviyesi kÄ±rÄ±lÄ±mÄ±", "Momentum gÃ¶stergelerinde bozulma", "Hacim dÃ¼ÅŸÃ¼ÅŸÃ¼ ile likidite azalmasÄ±"],
-                "technical_opportunities": ["AÅŸÄ±rÄ± satÄ±m bÃ¶lgelerinden tepki potansiyeli", "Pozitif uyumsuzluk oluÅŸumu", "Formasyon tamamlanmasÄ±"],
+                "technical_risks": ["Destek seviyesi kırılımı", "Momentum göstergelerinde bozulma", "Hacim düşüşü ile likidite azalması"],
+                "technical_opportunities": ["Aşırı satım bölgelerinden tepki potansiyeli", "Pozitif uyumsuzluk oluşumu", "Formasyon tamamlanması"],
                 "beta": None,
                 "market_breadth": None,
             },
@@ -568,18 +568,18 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
                 "notes": [f["message"] for f in true_conflicts],
             },
             "izlenmesi_gerekenler": {
-                "not": f"{ticker_upper} iÃ§in yakÄ±ndan izlenmesi gereken kritik seviye {_fmt_price(nearest_support, unit)} desteÄŸi ve {_fmt_price(nearest_resistance, unit)} direncidir. "
-                       f"RSI {rsi_val:.1f} seviyesinde olup {_trend_dir_tr(regime.get('trend_direction', 'Neutral'))} yÃ¶nÃ¼nde sinyal vermektedir. "
-                       f"Hacim geliÅŸmeleri ve momentumdaki olasÄ± deÄŸiÅŸimler takip edilmelidir.",
+                "not": f"{ticker_upper} için yakından izlenmesi gereken kritik seviye {_fmt_price(nearest_support, unit)} desteği ve {_fmt_price(nearest_resistance, unit)} direncidir. "
+                       f"RSI {rsi_val:.1f} seviyesinde olup {_trend_dir_tr(regime.get('trend_direction', 'Neutral'))} yönünde sinyal vermektedir. "
+                       f"Hacim gelişmeleri ve momentumdaki olası değişimler takip edilmelidir.",
                 "kritik_seviyeler": [
-                    f"Destek {_fmt_price(nearest_support, unit)} â€” kÄ±rÄ±lÄ±rsa satÄ±ÅŸ baskÄ±sÄ± artabilir",
-                    f"DirenÃ§ {_fmt_price(nearest_resistance, unit)} â€” aÅŸÄ±lÄ±rsa yÃ¼kseliÅŸ ivmelenebilir",
+                    f"Destek {_fmt_price(nearest_support, unit)} — kırılırsa satış baskısı artabilir",
+                    f"Direnç {_fmt_price(nearest_resistance, unit)} — aşılırsa yükseliş ivmelenebilir",
                 ],
                 "izlenecek_konular": [
-                    "RSI'nin aÅŸÄ±rÄ± satÄ±m/aÅŸÄ±rÄ± alÄ±m bÃ¶lgelerine yaklaÅŸÄ±mÄ±",
-                    "MACD histogramÄ±nÄ±n yÃ¶n deÄŸiÅŸtirmesi",
-                    "Hacimde anormal artÄ±ÅŸ/azalÄ±ÅŸ",
-                    "Alt/Ã¼st trend Ã§izgilerine yaklaÅŸÄ±m",
+                    "RSI'nin aşırı satım/aşırı alım bölgelerine yaklaşımı",
+                    "MACD histogramının yön değiştirmesi",
+                    "Hacimde anormal artış/azalış",
+                    "Alt/üst trend çizgilerine yaklaşım",
                 ],
             },
         }
