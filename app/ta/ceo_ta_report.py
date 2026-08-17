@@ -288,7 +288,7 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
         data = await get_historical_prices(ticker_upper, limit=500)
         if not data:
             return {"error": f"No historical data found for {ticker_upper}"}
-        data = _overlay_live_data(ticker_upper, data)
+        data = await _overlay_live_data(ticker_upper, data)
 
         cols = {
             "open": [float(r.get("open", 0) or 0) for r in data],
