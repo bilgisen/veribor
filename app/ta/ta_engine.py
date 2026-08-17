@@ -1,5 +1,5 @@
-﻿"""
-Technical Analysis Engine â€” Single Pipeline.
+"""
+Technical Analysis Engine — Single Pipeline.
 calculate_full_analysis() is the one true source for all TA endpoints.
 Each endpoint (public/member/full/context) filters the same full result.
 """
@@ -46,22 +46,15 @@ logger = logging.getLogger(__name__)
 
 
 async def get_historical_prices(ticker: str, limit: int = 500) -> list[dict]:
-    """Fetches price history from tapi2 (D1 finveri-db üzerinden)."""
-    import httpx
-    from app.config import settings
-    base = (settings.TAPI2_HISTORY_URL or "https://tapi2.jetborsa.workers.dev").rstrip("/")
-    try:
-        async with httpx.AsyncClient(timeout=30, verify=False) as client:
-            resp = await client.get(f"{base}/history/{ticker.upper()}?limit={limit}")
-            if resp.status_code != 200:
-                return []
-            body = resp.json()
-            rows = body.get("data") or []
-            # tapi2 DESC döner — ASC'ye çevir (eski D1 davranışı)
-            rows.reverse()
-            return rows
-    except Exception:
+    """Fetches price history from D1."""
+    from app.core.d1 import get_db, D1Repository
+    db = get_db()
+    if db is None:
         return []
+    repo = D1Repository(db)
+    rows = await repo.get_prices(ticker, limit)
+    rows.reverse()
+    return rows
 
 
 async def _get_live_price(ticker: str) -> Optional[dict]:
@@ -120,14 +113,14 @@ async def calculate_full_analysis(
     with_live_overlay: bool = True,
 ) -> dict:
     """
-    THE single pipeline â€” ALL calculations in one pass.
+    THE single pipeline — ALL calculations in one pass.
     Returns the COMPLETE analysis dict. Each endpoint filters from this.
     """
     data = await get_historical_prices(ticker, limit=500)
     if not data:
         return {"error": "No historical data found"}
     if with_live_overlay:
-        data = await _overlay_live_data(ticker, data)
+        data = _overlay_live_data(ticker, data)
 
     cols = _cols(data)
     c = cols["close"]
@@ -197,6 +190,7 @@ async def calculate_full_analysis(
     relative_strength = None
     if with_breadth:
         try:
+            from app.ta.ta_engine import get_market_breadth, calculate_beta
             breadth_data = await get_market_breadth()
             beta_val = await calculate_beta(ticker)
             index_data = await get_historical_prices("XU100", limit=500)
@@ -329,7 +323,7 @@ async def calculate_full_analysis(
 
 
 def filter_public(full: dict) -> dict:
-    """Filter full analysis â†’ public summary (field set #1)."""
+    """Filter full analysis → public summary (field set #1)."""
     return {
         "ticker": full.get("ticker"),
         "price": full.get("price"),
@@ -350,7 +344,7 @@ def filter_public(full: dict) -> dict:
 
 
 def filter_member(full: dict) -> dict:
-    """Filter full analysis â†’ member summary (field set #2)."""
+    """Filter full analysis → member summary (field set #2)."""
     sr = full.get("sr_zones", {})
     return {
         "ticker": full.get("ticker"),
@@ -380,7 +374,7 @@ def filter_member(full: dict) -> dict:
 
 
 def filter_context(full: dict, query_type: str = "general") -> dict:
-    """Filter full analysis â†’ chatbot context (field set #3).
+    """Filter full analysis → chatbot context (field set #3).
 
     Rich, intent-trimmed payload for the Hono AI chat pipeline. The base set
     carries the full TA surface (indicators, regime, S/R, signals, scenarios,
@@ -441,7 +435,7 @@ def filter_context(full: dict, query_type: str = "general") -> dict:
 
 
 def filter_batch_result(full: dict) -> dict:
-    """Filter full analysis â†’ batch screening result."""
+    """Filter full analysis → batch screening result."""
     sr = full.get("sr_zones", {})
     return {
         "ticker": full.get("ticker"),
@@ -465,7 +459,7 @@ def _generate_public_summary(full: dict) -> str:
     score = full.get("score", {}).get("total", 50)
 
     parts = [
-        f"{ticker} {price:.2f} TL seviyesinde iÅŸlem gÃ¶rÃ¼yor.",
+        f"{ticker} {price:.2f} TL seviyesinde işlem görüyor.",
         f"Teknik skor {score}/100 ile {trend.lower()} sinyal veriyor.",
         f"Piyasa rejimi: {regime_name}.",
     ]
@@ -475,7 +469,7 @@ def _generate_public_summary(full: dict) -> str:
         ns = sr.get("nearest_support")
         nr = sr.get("nearest_resistance")
         if ns and nr:
-            parts.append(f"Destek: {ns.get('price', 0):.2f}, DirenÃ§: {nr.get('price', 0):.2f}.")
+            parts.append(f"Destek: {ns.get('price', 0):.2f}, Direnç: {nr.get('price', 0):.2f}.")
 
     return " ".join(parts)
 
@@ -488,9 +482,9 @@ def _generate_member_summary(full: dict) -> str:
     divs = full.get("divergences", {})
     parts = [base]
     if comps:
-        parts.append(f"BileÅŸenler: Trend {comps.get('trend', 0)}p, Momentum {comps.get('momentum', 0)}p, Hacim {comps.get('volume', 0)}p.")
+        parts.append(f"Bileşenler: Trend {comps.get('trend', 0)}p, Momentum {comps.get('momentum', 0)}p, Hacim {comps.get('volume', 0)}p.")
     if isinstance(divs, dict) and divs.get("divergence_count", 0) > 0:
-        parts.append(f"Sapma tespit edildi ({divs.get('divergence_count', 0)} gÃ¶stergede).")
+        parts.append(f"Sapma tespit edildi ({divs.get('divergence_count', 0)} göstergede).")
     return " ".join(parts)
 
 
@@ -518,9 +512,9 @@ def _generate_context_summary(full: dict, query_type: str = "general") -> str:
         scenarios = full.get("scenarios", [])
         for s in scenarios:
             if s.get("direction") == "Bullish":
-                lines.append(f"AlÄ±ÅŸ senaryosu: {s.get('trigger_price', 0):.2f} Ã¼stÃ¼, hedef {s.get('target_price', 0):.2f}.")
+                lines.append(f"Alış senaryosu: {s.get('trigger_price', 0):.2f} üstü, hedef {s.get('target_price', 0):.2f}.")
             elif s.get("direction") == "Bearish":
-                lines.append(f"SatÄ±ÅŸ senaryosu: {s.get('trigger_price', 0):.2f} altÄ±, hedef {s.get('target_price', 0):.2f}.")
+                lines.append(f"Satış senaryosu: {s.get('trigger_price', 0):.2f} altı, hedef {s.get('target_price', 0):.2f}.")
 
     return " | ".join(lines)
 
@@ -559,7 +553,7 @@ def _generate_llm_text(ticker: str, full: dict) -> str:
     signals = full.get("signals", [])
     signal_lines = []
     for s in signals[:8]:
-        dir_icon = "âœ“" if s.get("direction") == "Bullish" else "âœ—" if s.get("direction") == "Bearish" else "âŠ™"
+        dir_icon = "✓" if s.get("direction") == "Bullish" else "✗" if s.get("direction") == "Bearish" else "⊙"
         signal_lines.append(f"{dir_icon} {s['label']}")
 
     lines = [
@@ -625,18 +619,42 @@ async def get_mtf_analysis(ticker: str) -> dict:
 
 
 async def get_market_breadth() -> dict:
-    """Approximate market breadth from cached TA data (Redis ta:member:*)."""
+    """Legacy: approximate market breadth from cached TA data."""
     try:
-        from app.core import get_cache
-        cache = await get_cache()
-        # Redis SCAN yerine bilinen key yok — breadth şimdilik nötr
-        return {"breadth": 50, "status": "Neutral", "source": "fallback"}
-    except Exception:
+        from app.core.redis_client import get_redis
+        r = get_redis()
+        keys_raw = r.keys("ta_data:*")
+        if not keys_raw:
+            return {"breadth": 50, "status": "Neutral"}
+        keys = [keys_raw] if isinstance(keys_raw, str) else keys_raw if isinstance(keys_raw, list) else []
+        above = 0
+        total = 0
+        for key in keys:
+            try:
+                data = json.loads(r.get(key))
+                close_val = data.get("close", 0)
+                sma_50 = None
+                if "indicators" in data:
+                    sma_50 = data["indicators"].get("sma_50")
+                elif "sma_50" in data:
+                    sma_50 = data.get("sma_50")
+                if sma_50 and close_val > sma_50:
+                    above += 1
+                total += 1
+            except Exception:
+                continue
+        if total == 0:
+            return {"breadth": 50, "status": "Neutral"}
+        pct = (above / total) * 100
+        status = "Strong" if pct > 70 else "Weak" if pct < 30 else "Neutral"
+        return {"breadth": pct, "status": status}
+    except Exception as e:
+        logger.warning("Market breadth error: %s", e)
         return {"breadth": 50, "status": "Neutral"}
 
 
 async def calculate_beta(ticker: str) -> float:
-    """Simplified beta calculation (XU100 via tapi2 history)."""
+    """Legacy: simplified beta calculation."""
     try:
         stock_data = await get_historical_prices(ticker, limit=252)
         market_data = await get_historical_prices("XU100", limit=252)
@@ -663,7 +681,7 @@ async def calculate_beta(ticker: str) -> float:
 
 
 async def generate_llm_summary(ticker: str) -> dict:
-    """Legacy entry point â€” delegates to calculate_full_analysis + filter_member."""
+    """Legacy entry point — delegates to calculate_full_analysis + filter_member."""
     full = await calculate_full_analysis(ticker)
     if "error" in full:
         return full
@@ -673,7 +691,7 @@ async def generate_llm_summary(ticker: str) -> dict:
 
 
 async def calculate_indicators(ticker: str, indicators_list: list[str]) -> dict:
-    """Legacy entry point â€” delegates to full analysis with indicator subset."""
+    """Legacy entry point — delegates to full analysis with indicator subset."""
     full = await calculate_full_analysis(ticker)
     if "error" in full:
         return full
