@@ -46,15 +46,22 @@ logger = logging.getLogger(__name__)
 
 
 async def get_historical_prices(ticker: str, limit: int = 500) -> list[dict]:
-    """Fetches price history from D1."""
-    from app.core.d1 import get_db, D1Repository
-    db = get_db()
-    if db is None:
+    """Fetches price history from tapi2 (D1 finveri-db üzerinden)."""
+    import httpx
+    from app.config import settings
+    base = (settings.TAPI2_HISTORY_URL or "https://tapi2.jetborsa.workers.dev").rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=30, verify=False) as client:
+            resp = await client.get(f"{base}/history/{ticker.upper()}?limit={limit}")
+            if resp.status_code != 200:
+                return []
+            body = resp.json()
+            rows = body.get("data") or []
+            # tapi2 DESC döner — ASC'ye çevir (eski D1 davranışı)
+            rows.reverse()
+            return rows
+    except Exception:
         return []
-    repo = D1Repository(db)
-    rows = await repo.get_prices(ticker, limit)
-    rows.reverse()
-    return rows
 
 
 async def _get_live_price(ticker: str) -> Optional[dict]:
