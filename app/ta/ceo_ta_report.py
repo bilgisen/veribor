@@ -406,7 +406,7 @@ async def generate_ceo_report(ticker: str) -> Dict[str, Any]:
 
         return {
             "ticker": ticker_upper,
-            "report_date": datetime.now().strftime("%d.%m.%Y %H:%M"),
+            "report_date": datetime.now().isoformat(),
             "current_price": round(close, 2),
             "unit": unit,
             "executive_summary": executive_summary,
